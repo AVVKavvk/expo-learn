@@ -1,19 +1,19 @@
 import { AntDesign, FontAwesome } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { Drawer } from "expo-router/drawer";
 import React from "react";
 const TabRootLayout = () => {
   return (
-    <Tabs>
-      <Tabs.Screen
+    <Drawer>
+      <Drawer.Screen
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color, size }) => {
+          tabBarIcon: () => {
             return <FontAwesome name="home" size={28} />;
           },
         }}
       />
-      <Tabs.Screen
+      <Drawer.Screen
         name="about"
         options={{
           title: "About",
@@ -22,16 +22,16 @@ const TabRootLayout = () => {
           },
         }}
       />
-      <Tabs.Screen
+      <Drawer.Screen
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color, size }) => {
+          tabBarIcon: () => {
             return <FontAwesome name="user" size={28} />;
           },
         }}
       />
-    </Tabs>
+    </Drawer>
   );
 };
 
