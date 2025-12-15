@@ -1,10 +1,10 @@
 import { AntDesign, FontAwesome } from "@expo/vector-icons";
-import { Drawer } from "expo-router/drawer";
+import { Tabs } from "expo-router";
 import React from "react";
 const TabRootLayout = () => {
   return (
-    <Drawer>
-      <Drawer.Screen
+    <Tabs>
+      <Tabs.Screen
         name="index"
         options={{
           title: "Home",
@@ -13,7 +13,7 @@ const TabRootLayout = () => {
           },
         }}
       />
-      <Drawer.Screen
+      <Tabs.Screen
         name="about"
         options={{
           title: "About",
@@ -22,7 +22,7 @@ const TabRootLayout = () => {
           },
         }}
       />
-      <Drawer.Screen
+      <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
@@ -31,7 +31,7 @@ const TabRootLayout = () => {
           },
         }}
       />
-    </Drawer>
+    </Tabs>
   );
 };
 
