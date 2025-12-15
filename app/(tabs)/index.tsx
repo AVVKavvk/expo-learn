@@ -1,47 +1,75 @@
+import { Pedometer } from "expo-sensors";
 import { useEffect, useState } from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
 
-import * as Device from "expo-device";
-
-import * as Location from "expo-location";
-
 export default function App() {
-  const [location, setLocation] = useState<Location.LocationObject | null>(
-    null
-  );
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isPedometerAvailable, setIsPedometerAvailable] = useState("checking");
+  const [pastStepCount, setPastStepCount] = useState(0);
+  const [currentStepCount, setCurrentStepCount] = useState(0);
+
+  const subscribe = async () => {
+    const isAvailable = await Pedometer.isAvailableAsync();
+    setIsPedometerAvailable(String(isAvailable));
+
+    if (isAvailable) {
+      // Only try to get historical data on iOS
+      if (Platform.OS === "ios") {
+        try {
+          const end = new Date();
+          const start = new Date();
+          start.setDate(end.getDate() - 1);
+
+          const pastStepCountResult = await Pedometer.getStepCountAsync(
+            start,
+            end
+          );
+          if (pastStepCountResult) {
+            setPastStepCount(pastStepCountResult.steps);
+          }
+        } catch (error) {
+          console.log("Error getting past step count:", error);
+        }
+      }
+
+      // Watch for real-time steps (works on both platforms)
+      return Pedometer.watchStepCount((result) => {
+        console.log(result);
+
+        setCurrentStepCount(result.steps);
+      });
+    }
+  };
 
   useEffect(() => {
-    async function getCurrentLocation() {
-      if (Platform.OS === "android" && !Device.isDevice) {
-        setErrorMsg(
-          "Oops, this will not work on Snack in an Android Emulator. Try it on your device!"
-        );
-        return;
-      }
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        setErrorMsg("Permission to access location was denied");
-        return;
-      }
+    let subscription;
 
-      let location = await Location.getCurrentPositionAsync({});
-      setLocation(location);
-    }
+    subscribe().then((sub) => {
+      subscription = sub;
+    });
 
-    getCurrentLocation();
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+    };
   }, []);
-
-  let text = "Waiting...";
-  if (errorMsg) {
-    text = errorMsg;
-  } else if (location) {
-    text = JSON.stringify(location);
-  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.paragraph}>{text}</Text>
+      <Text style={styles.text}>
+        Pedometer Available: {isPedometerAvailable}
+      </Text>
+      {Platform.OS === "ios" && (
+        <Text style={styles.text}>
+          Steps taken in the last 24 hours: {pastStepCount}
+        </Text>
+      )}
+      {Platform.OS === "android" && (
+        <Text style={styles.note}>
+          Note: Historical step data not available on Android
+        </Text>
+      )}
+      <Text style={styles.text}>Current session steps: {currentStepCount}</Text>
     </View>
   );
 }
@@ -49,12 +77,21 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginTop: 15,
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
   },
-  paragraph: {
-    fontSize: 18,
+  text: {
+    fontSize: 16,
+    marginVertical: 10,
     textAlign: "center",
+  },
+  note: {
+    fontSize: 14,
+    marginVertical: 10,
+    textAlign: "center",
+    fontStyle: "italic",
+    color: "#666",
   },
 });
